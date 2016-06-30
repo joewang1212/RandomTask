@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+		<link rel="stylesheet" href="css/mui.css" />
+		<style>
+			body {
+				margin: 0 auto;
+				position: relative;
+			}
+			
+			.marginLeft20 {
+				margin-left: 20px;
+			}
+			
+			body .mui-numbox {
+				height: 35px;
+			}
+			
+			body .mui-table-view-cell {
+				height: 57px;
+				line-height: 36px;
+			}
+			
+			#canvas {
+				margin: 0 auto;
+			}
+			
+			.taskName {
+				width: 100px;
+				display: inline-block;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<h1 class="mui-title">随机任务轮盘</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-card">
+				<canvas id="canvas" width="250" height="250"></canvas>
+				<div style="float:right">
+					<img src="img/pointer.png" width="60px" style="margin-top:95px"/>
+				<button style="display: block;margin:40px 10px 0 0" type="button" class="mui-btn mui-btn-danger randomTask">随机任务</button>
+				
+				</div>
+			</div>
+			<div class="mui-card" style="margin-top: 10px;">
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell task">
+						<div class="taskName">看美剧</div>
+						<div class="mui-numbox marginLeft20" data-numbox-step='1' data-numbox-min='1' data-numbox-max='10'>
+							<button class="mui-btn mui-numbox-btn-minus" type="button">-</button>
+							<input class="mui-numbox-input taskWeight" type="number" value="1" />
+							<button class="mui-btn mui-numbox-btn-plus" type="button">+</button>
+						</div>
+						<button type="button" class="mui-btn mui-btn-danger taskDel">删除</button>
+					</li>
+					<li class="mui-table-view-cell" id="taskAddItem">
+
+						<div class="mui-input-row" style="width:200px;">
+							<input type="text" class="mui-input-clear" placeholder="输入新任务名称">
+						</div>
+						<button type="button" class="mui-btn mui-btn-danger taskAdd">添加</button>
+					</li>
+				</ul>
+				<div style="display: none;" id="taskItem">
+					<li class="mui-table-view-cell task">
+						<div class="taskName"></div>
+						<div class="mui-numbox marginLeft20" data-numbox-step='1' data-numbox-min='1' data-numbox-max='10'>
+							<button class="mui-btn mui-numbox-btn-minus" type="button">-</button>
+							<input class="mui-numbox-input taskWeight" type="number" value="1" />
+							<button class="mui-btn mui-numbox-btn-plus" type="button">+</button>
+						</div>
+						<button type="button" class="mui-btn mui-btn-danger taskDel">删除</button>
+					</li>
+				</div>
+			</div>
+		</div>
+
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function() { 
+				var items = []; 
+				var color = ["#007aff","#4CD964","#f0ad4e","#dd524d","#8a6de9","#fff",
+				"#0062CC","#2AC845","#6641E2","#8A6DE9","#CF2D28","#EC971F","#FF0000",
+				"#C0C0C0","#FF0000","#800000","#FFFF00","#808000","#00FF00","#008000",
+				"#00FFFF","#008080","#0000FF","#000080","#FF00FF","#800080"];
+				var allArc = 2 * Math.PI;
+				var outerR = 125; //轮盘的大小
+				var interR = 50; //内存空白圆的大小
+				var beginAngle = 50; //旋转起来时默认开始旋转的度数，度数愈大旋转的初始速度愈大
+				var radio = 0.95; //旋转速度衰减系数，影响旋转时间
+				var t = null;
+				var $taskList = $(".mui-table-view");
+				var $taskItem = $("#taskItem li");
+				var $taskAddItem = $("#taskAddItem");
+				var canvas = document.getElementById("canvas");
+				var context = canvas.getContext("2d");
+				context.translate(125, 125);
+				
+				preRender();
+				render();
+				$(".randomTask").on("click", function() {
+					if (t) {
+						return false;
+					}
+					var step = beginAngle + Math.random() * 10;
+					var angle = 0;
+					t = setInterval(function() {
+						step *= radio;
+						if (step <= 0.1) {
+							clearInterval(t);
+							t = null;
+							var res = getRes(angle);
+							context.save();
+							context.beginPath();
+							context.font = "23px 微软雅黑";
+							context.fillStyle = "#f00";
+							context.textAlign = "center";
+							context.textBaseline = "middle";
+							context.fillText(res, 0, 0);
+							context.restore();
+						} else {
+							context.clearRect(-125, -125, 250, 250);
+							angle += step;
+							if (angle > 360) {
+								angle -= 360;
+							}
+							context.save();
+							context.beginPath();
+							context.rotate(angle * Math.PI / 180);
+							render();
+							context.restore();
+							
+						}
+					}, 60);
+				});
+				$(".taskAdd").on("click", function() {
+					var self = $(this);
+					var taskNameInput = self.siblings().find("input");
+					var taskName = taskNameInput.val();
+					if (taskName == "") {
+						alert("请输入正确的任务名称！");
+						return;
+					} else if (taskName.length > 10) {
+						alert("您输入的任务名称过长！");
+						return;
+					}
+					$taskItem.find(".taskName").text(taskName);
+					$taskItem.clone().insertBefore($taskAddItem);
+					taskNameInput.val("");
+					preRender()
+					render();
+				});
+				mui(".mui-table-view").on("tap",".taskDel",function(){
+					$(this).parent().remove();
+					preRender();
+					render();
+				});
+				mui(".mui-table-view").on("change",".taskWeight", function() {
+					preRender();
+					render();
+				});
+
+
+				function getRes(angle) {
+					var allWeight = 0,
+						anglePercent = 1 - angle / 360,
+						curWeight = 0;
+					nextWeight = 0;
+					for (var i = 0; i < items.length; i++) {
+						allWeight += items[i].weight;
+					}
+					for (var i = 0; i < items.length; i++) {
+						nextWeight += items[i].weight;
+						if (curWeight / allWeight <= anglePercent && nextWeight / allWeight > anglePercent) {
+							return items[i].name;
+						}
+						curWeight = nextWeight;
+					}
+				}
+
+				function getItems() {
+					items = [];
+					$taskList.find(".task").each(function() {
+						var self = $(this);
+						var taskName = self.children(".taskName").text();
+						var taskWeight = parseInt(self.find(".taskWeight").val());
+						items.push({
+							name: taskName,
+							weight: taskWeight
+						});
+					});
+				}
+				
+				function preRender(){
+					context.clearRect(-125, -125, 250, 250);
+					getItems();
+				}
+
+				function render() {
+					var len = items.length;
+					var allWeight = 0;
+					for (var i = 0; i < len; i++) {
+						allWeight += items[i].weight;
+					}
+					var lastArc = 0,
+						lastAllWeight = 0,
+						thisArc = 0;
+					for (var i = 0; i < len; i++) {
+						var item = items[i];
+						lastAllWeight += item.weight;
+						context.save();
+						context.beginPath();
+						context.moveTo(0, 0);
+						context.fillStyle = color[i];
+						thisArc = allArc * lastAllWeight / allWeight;
+						context.arc(0, 0, outerR, lastArc, thisArc);
+						context.fill();
+						context.restore();
+						context.save();
+						context.beginPath();
+						context.fillStyle = "#000";
+						context.font = "15px 微软雅黑";
+						context.textAlign = "center";
+						context.textBaseline = "middle";
+						context.rotate(lastArc + allArc * item.weight / allWeight / 2);
+						context.fillText(item.name, (outerR + interR) / 2, 0);
+						context.restore();
+						lastArc = thisArc;
+					}
+					context.save();
+					context.beginPath();
+					context.fillStyle = "#fff";
+					context.arc(0, 0, interR, 0, 2 * Math.PI);
+					context.fill();
+					context.restore();
+				}
+			});
+		</script>
+	</body>
+
+</html>
