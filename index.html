@@ -7,7 +7,7 @@
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
 		<script type="text/javascript" src="jquery-1.11.3.min.js"></script>
-		<link rel="stylesheet" href="css/mui.css" />
+		<link rel="stylesheet" href="css/mui.min.css" />
 		<style>
 			body {
 				margin: 0 auto;
@@ -89,7 +89,7 @@
 			mui.init();
 			mui.plusReady(function() { 
 				var items = []; 
-				var color = ["#007aff","#4CD964","#f0ad4e","#dd524d","#8a6de9","#fff",
+				var color = ["#007aff","#4CD964","#f0ad4e","#dd524d","#8a6de9",
 				"#0062CC","#2AC845","#6641E2","#8A6DE9","#CF2D28","#EC971F","#FF0000",
 				"#C0C0C0","#FF0000","#800000","#FFFF00","#808000","#00FF00","#008000",
 				"#00FFFF","#008080","#0000FF","#000080","#FF00FF","#800080"];
@@ -150,7 +150,7 @@
 					if (taskName == "") {
 						alert("请输入正确的任务名称！");
 						return;
-					} else if (taskName.length > 10) {
+					} else if (taskName.length >5) {
 						alert("您输入的任务名称过长！");
 						return;
 					}
